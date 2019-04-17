@@ -47,12 +47,15 @@ public class ChatbotController {
 	public SentenceMessage createSentence(@PathVariable("profile") String profile, 
 			@RequestParam(name="keyword",defaultValue=SpecialWords.START_SENTENCE) String keyword,
 			@RequestParam(name="max",required=false) String maxStr) {
-		SentenceMessage sentence = new SentenceMessage();
-		if(maxStr != null && StringUtils.isNumeric(maxStr)) {
+		SentenceMessage sentenceMessage = new SentenceMessage();
+		String sentence;
+		if(StringUtils.isNumeric(maxStr)) {
 			int max = Integer.parseInt(maxStr);
-			creator.setMax(max);
+			sentence = creator.createSentence(profile,keyword,max);
+		} else {
+			sentence = creator.createSentence(profile, keyword);
 		}
-		sentence.setSentence(creator.createSentence(profile, keyword));
-		return sentence;
+		sentenceMessage.setSentence(sentence);
+		return sentenceMessage;
 	}
 } 

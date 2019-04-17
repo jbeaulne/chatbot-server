@@ -8,26 +8,31 @@ import com.jbeaulne.chatbot.constants.SpecialWords;
 
 public abstract class AbstractSentenceCreatorService implements SentenceCreatorService {
 	
-	private int max = 1024;
-	
+	private static final int DEFAULT_MAX = 1024;
+
 	@Override
 	public String createSentence(String profile, String keyword) {
+		return createSentence(profile, keyword, DEFAULT_MAX);
+	}
+
+	@Override
+	public String createSentence(String profile, String keyword, int max) {
 		StringBuilder sentence = new StringBuilder();
 		Word initialWord = getWord(keyword,profile);
 		if(initialWord != null) {
 			if(!SpecialWords.START_SENTENCE.equalsIgnoreCase(initialWord.getWord())) {
 				sentence.append(initialWord.getWord());
-				buildBeginningOfSentence(sentence,initialWord);
+				buildBeginningOfSentence(sentence,initialWord,max);
 			}
 			
-			buildEndOfSentence(sentence,initialWord);
+			buildEndOfSentence(sentence,initialWord,max);
 		}
 		return sentence.toString().trim();
 	}
 	
-	protected void buildBeginningOfSentence(StringBuilder sentence, Word word) {
+	protected void buildBeginningOfSentence(StringBuilder sentence, Word word, int max) {
 		String nextWord = selectNextWord(word,"wordsBefore");
-		if(nextWord == null || sentence.length() + nextWord.length() > getMax()) {
+		if(nextWord == null || sentence.length() + nextWord.length() > max) {
 			return;
 		}
 		if(!SpecialWords.START_SENTENCE.equalsIgnoreCase(nextWord)) {
@@ -37,13 +42,13 @@ public abstract class AbstractSentenceCreatorService implements SentenceCreatorS
 			if(article!=null) {
 				sentence.insert(0, article + " ");
 			} 
-			buildBeginningOfSentence(sentence,nextWordObj);
+			buildBeginningOfSentence(sentence,nextWordObj,max);
 		}
 	}
 	
-	protected void buildEndOfSentence(StringBuilder sentence, Word word) {
+	protected void buildEndOfSentence(StringBuilder sentence, Word word, int max) {
 		String nextWord = selectNextWord(word,"wordsAfter");
-		if(nextWord == null || sentence.length() + nextWord.length() > getMax()) {
+		if(nextWord == null || sentence.length() + nextWord.length() > max) {
 			return;
 		}
 		if(!SpecialWords.END_SENTENCE.equalsIgnoreCase(nextWord)) {
@@ -53,7 +58,7 @@ public abstract class AbstractSentenceCreatorService implements SentenceCreatorS
 				sentence.append(" " + article);
 			}
 			sentence.append(" " + nextWordObj.getWord());
-			buildEndOfSentence(sentence,nextWordObj);
+			buildEndOfSentence(sentence,nextWordObj,max);
 		}
 	}
 	
@@ -76,15 +81,6 @@ public abstract class AbstractSentenceCreatorService implements SentenceCreatorS
 		} else {
 			return article;
 		}
-	}
-	
-	@Override
-	public void setMax(int max) {
-		this.max = max;
-	}
-	
-	protected int getMax() {
-		return max;
 	}
 	
 	protected abstract String selectNextWord(Word word, String listName);
